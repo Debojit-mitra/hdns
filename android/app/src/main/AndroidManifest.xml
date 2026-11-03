@@ -43,7 +43,7 @@
             android:name=".DnsTileService"
             android:exported="true"
             android:label="@string/tile_label"
-            android:icon="@drawable/ic_tile_dns"
+            android:icon="@mipmap/ic_launcher"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

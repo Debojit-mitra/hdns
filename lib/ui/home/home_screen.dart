@@ -6,6 +6,7 @@ import '../../data/dns_provider.dart';
 import '../../state/providers.dart';
 import '../custom/add_dns_sheet.dart';
 import '../settings/settings_screen.dart';
+import '../widgets/one_ui_app_bar.dart';
 import 'hero_card.dart';
 import 'provider_tile.dart';
 import '../../data/dns_channel.dart';
@@ -97,8 +98,8 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            title: const Text('HDNS'),
+          OneUiSliverAppBar(
+            title: 'HDNS',
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings_rounded),
@@ -132,16 +133,13 @@ class HomeScreen extends ConsumerWidget {
                     style: tt.titleLarge?.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ),
-                for (var i = 0; i < providers.length; i++)
+                for (final p in providers)
                   ProviderTile(
-                    provider: providers[i],
-                    selected: on && providers[i].id == native.activeId,
-                    isFirst: i == 0,
-                    isLast: i == providers.length - 1,
-                    onTap: () => _select(context, ref, providers[i]),
-                    onEdit: () =>
-                        _addOrEdit(context, ref, existing: providers[i]),
-                    onDelete: () => _delete(ref, providers[i]),
+                    provider: p,
+                    selected: on && p.id == native.activeId,
+                    onTap: () => _select(context, ref, p),
+                    onEdit: () => _addOrEdit(context, ref, existing: p),
+                    onDelete: () => _delete(ref, p),
                   ),
                 const SizedBox(height: 96),
               ]),

@@ -170,3 +170,43 @@ final updateProvider = FutureProvider<UpdateInfo?>((ref) => checkForUpdate());
 final appVersionProvider = FutureProvider<String>(
   (ref) async => (await PackageInfo.fromPlatform()).version,
 );
+
+// ---------- Extra Dim ----------
+class ExtraDimState {
+  const ExtraDimState({required this.supported, required this.enabled});
+  final bool supported;
+  final bool enabled;
+}
+
+class ExtraDimController extends AsyncNotifier<ExtraDimState> {
+  DnsChannel get _ch => ref.read(dnsChannelProvider);
+
+  @override
+  Future<ExtraDimState> build() async {
+    final m = await _ch.getExtraDimState();
+    return ExtraDimState(
+      supported: m['supported'] == true,
+      enabled: m['enabled'] == true,
+    );
+  }
+
+  Future<void> toggle(bool enable) async {
+    final ok = await _ch.setExtraDim(enable);
+    if (ok) {
+      state = AsyncData(ExtraDimState(supported: true, enabled: enable));
+    }
+  }
+
+  Future<void> refresh() async {
+    final m = await _ch.getExtraDimState();
+    state = AsyncData(ExtraDimState(
+      supported: m['supported'] == true,
+      enabled: m['enabled'] == true,
+    ));
+  }
+}
+
+final extraDimProvider =
+    AsyncNotifierProvider<ExtraDimController, ExtraDimState>(
+      ExtraDimController.new,
+    );

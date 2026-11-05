@@ -2,6 +2,7 @@ package com.hana.utils.hdns
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
@@ -39,6 +40,7 @@ class DnsTileService : TileService() {
         } else {
             tile.label = if (on) name else getString(R.string.tile_label)
         }
+        tile.icon = Icon.createWithResource(this, R.drawable.ic_tile_hdns)
         tile.updateTile()
     }
 

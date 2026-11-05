@@ -4,6 +4,7 @@ import android.app.StatusBarManager
 import android.content.ComponentName
 import android.graphics.drawable.Icon
 import android.os.Build
+import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -47,7 +48,29 @@ class MainActivity : FlutterActivity() {
                             sbm.requestAddTileService(
                                 ComponentName(this, DnsTileService::class.java),
                                 getString(R.string.tile_label),
-                                Icon.createWithResource(this, R.drawable.ic_tile_dns),
+                                Icon.createWithResource(this, R.drawable.ic_tile_hdns),
+                                mainExecutor,
+                            ) { code -> result.success(code) }
+                        }
+                    }
+                    "getExtraDimState" -> {
+                        val supported = ExtraDimManager.isSupported()
+                        val enabled = if (supported) ExtraDimManager.isOn(this) else false
+                        result.success(mapOf("supported" to supported, "enabled" to enabled))
+                    }
+                    "setExtraDim" -> {
+                        val enable = call.argument<Boolean>("enabled") ?: false
+                        result.success(ExtraDimManager.set(this, enable))
+                    }
+                    "requestAddExtraDimTile" -> {
+                        if (Build.VERSION.SDK_INT < 33) {
+                            result.success(-1)
+                        } else {
+                            val sbm = getSystemService(StatusBarManager::class.java)
+                            sbm.requestAddTileService(
+                                ComponentName(this, ExtraDimTileService::class.java),
+                                getString(R.string.extra_dim_tile_label),
+                                Icon.createWithResource(this, R.drawable.ic_tile_extra_dim),
                                 mainExecutor,
                             ) { code -> result.success(code) }
                         }

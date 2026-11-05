@@ -55,4 +55,19 @@ class DnsChannel {
   /// -1 = unsupported (below Android 13), 0 = not added, 1 = already added, 2 = added.
   Future<int> requestAddTile() async =>
       (await _c.invokeMethod<int>('requestAddTile')) ?? 0;
+
+  Future<Map<String, bool>> getExtraDimState() async {
+    final res = await _c.invokeMapMethod<String, dynamic>('getExtraDimState');
+    return {
+      'supported': res?['supported'] == true,
+      'enabled': res?['enabled'] == true,
+    };
+  }
+
+  Future<bool> setExtraDim(bool enabled) async =>
+      (await _c.invokeMethod<bool>('setExtraDim', {'enabled': enabled})) ?? false;
+
+  /// -1 = unsupported (below Android 13), 0 = not added, 1 = already added, 2 = added.
+  Future<int> requestAddExtraDimTile() async =>
+      (await _c.invokeMethod<int>('requestAddExtraDimTile')) ?? 0;
 }

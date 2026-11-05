@@ -8,8 +8,6 @@ class ProviderTile extends StatelessWidget {
     super.key,
     required this.provider,
     required this.selected,
-    required this.isFirst,
-    required this.isLast,
     required this.onTap,
     this.onEdit,
     this.onDelete,
@@ -17,8 +15,6 @@ class ProviderTile extends StatelessWidget {
 
   final DnsProvider provider;
   final bool selected;
-  final bool isFirst;
-  final bool isLast;
   final VoidCallback onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -27,13 +23,10 @@ class ProviderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final radius = BorderRadius.vertical(
-      top: Radius.circular(isFirst ? 32 : 8),
-      bottom: Radius.circular(isLast ? 32 : 8),
-    );
+    final radius = BorderRadius.circular(24);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         animationDuration: const Duration(milliseconds: 400),
         color: selected ? cs.primaryContainer : cs.surfaceContainerHigh,

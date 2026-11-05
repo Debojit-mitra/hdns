@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../state/providers.dart';
+import '../widgets/one_ui_app_bar.dart';
 
 const _devName = 'Debojit';
 const _devRole = 'Developer of HDNS';
@@ -18,6 +19,7 @@ class SettingsScreen extends ConsumerWidget {
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
     final version = ref.watch(appVersionProvider).value ?? '';
+    final extraDim = ref.watch(extraDimProvider).value;
 
     Widget section(String t) => Padding(
       padding: const EdgeInsets.only(top: 24, bottom: 8),
@@ -25,86 +27,132 @@ class SettingsScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-        children: [
-          section('Theme'),
-          SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment(value: ThemeMode.system, label: Text('System')),
-              ButtonSegment(value: ThemeMode.light, label: Text('Light')),
-              ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-            ],
-            selected: {s.themeMode},
-            onSelectionChanged: (v) => n.setThemeMode(v.first),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Dynamic color'),
-            subtitle: const Text('Match your wallpaper (Android 12+)'),
-            value: s.dynamicColor,
-            onChanged: n.setDynamicColor,
-          ),
-          section('When turned off, use'),
-          SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: true, label: Text('Automatic')),
-              ButtonSegment(value: false, label: Text('Off')),
-            ],
-            selected: {s.offIsAutomatic},
-            onSelectionChanged: (v) => n.setOffIsAutomatic(v.first),
-          ),
-          section('Quick Settings tile'),
-          Text(
-            'Tap the tile to turn DNS on or off.\n'
-            'Long-press it to pick a different provider.',
-            style: tt.bodyLarge?.copyWith(color: cs.onSurfaceVariant),
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FilledButton.tonalIcon(
-              icon: const Icon(Icons.add_to_home_screen_rounded),
-              label: const Text('Add tile'),
-              onPressed: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final code = await ref
-                    .read(dnsChannelProvider)
-                    .requestAddTile();
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(switch (code) {
-                      -1 =>
-                        'Open Quick Settings, tap the pencil, and drag “Private DNS” in.',
-                      1 => 'Tile is already added.',
-                      2 => 'Tile added.',
-                      _ => 'Tile not added.',
-                    }),
+      body: CustomScrollView(
+        slivers: [
+          const OneUiSliverAppBar(title: 'Settings'),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                section('Theme'),
+                SegmentedButton<ThemeMode>(
+                  segments: const [
+                    ButtonSegment(value: ThemeMode.system, label: Text('System')),
+                    ButtonSegment(value: ThemeMode.light, label: Text('Light')),
+                    ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
+                  ],
+                  selected: {s.themeMode},
+                  onSelectionChanged: (v) => n.setThemeMode(v.first),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Dynamic color'),
+                  subtitle: const Text('Match your wallpaper (Android 12+)'),
+                  value: s.dynamicColor,
+                  onChanged: n.setDynamicColor,
+                ),
+                section('When turned off, use'),
+                SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(value: true, label: Text('Automatic')),
+                    ButtonSegment(value: false, label: Text('Off')),
+                  ],
+                  selected: {s.offIsAutomatic},
+                  onSelectionChanged: (v) => n.setOffIsAutomatic(v.first),
+                ),
+                section('Quick Settings tile'),
+                Text(
+                  'Tap the tile to turn DNS on or off.\n'
+                  'Long-press it to pick a different provider.',
+                  style: tt.bodyLarge?.copyWith(color: cs.onSurfaceVariant),
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FilledButton.tonalIcon(
+                    icon: const Icon(Icons.add_to_home_screen_rounded),
+                    label: const Text('Add tile'),
+                    onPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final code = await ref
+                          .read(dnsChannelProvider)
+                          .requestAddTile();
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(switch (code) {
+                            -1 =>
+                              'Open Quick Settings, tap the pencil, and drag “Private DNS” in.',
+                            1 => 'Tile is already added.',
+                            2 => 'Tile added.',
+                            _ => 'Tile not added.',
+                          }),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+                if (extraDim == null || extraDim.supported) ...[
+                  section('Extra Dim (Bonus feature)'),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: const Icon(Icons.brightness_medium_rounded),
+                    title: const Text('Extra Dim'),
+                    subtitle: const Text(
+                      'Dim the display beyond minimum brightness. '
+                      'Helpful on devices like HyperOS where this tile is missing.',
+                    ),
+                    value: extraDim?.enabled ?? false,
+                    onChanged: (v) =>
+                        ref.read(extraDimProvider.notifier).toggle(v),
+                  ),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: FilledButton.tonalIcon(
+                      icon: const Icon(Icons.add_to_home_screen_rounded),
+                      label: const Text('Add Extra Dim tile'),
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final code = await ref
+                            .read(dnsChannelProvider)
+                            .requestAddExtraDimTile();
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(switch (code) {
+                              -1 =>
+                                'Open Quick Settings, tap the pencil, and drag “Extra Dim” in.',
+                              1 => 'Tile is already added.',
+                              2 => 'Tile added.',
+                              _ => 'Tile not added.',
+                            }),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+                section('About'),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: cs.primaryContainer,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      color: cs.onPrimaryContainer,
+                    ),
+                  ),
+                  title: const Text('About HDNS'),
+                  subtitle: Text(version.isEmpty ? '' : 'v$version'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => _showAboutSheet(context, version),
+                ),
+              ]),
             ),
-          ),
-          section('About'),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: cs.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                Icons.info_outline_rounded,
-                color: cs.onPrimaryContainer,
-              ),
-            ),
-            title: const Text('About HDNS'),
-            subtitle: Text(version.isEmpty ? '' : 'v$version'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => _showAboutSheet(context, version),
           ),
         ],
       ),
